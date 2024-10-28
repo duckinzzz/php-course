@@ -11,9 +11,8 @@ use Symfony\Component\Uid\Uuid;
 class Task
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?uuid $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    private ?Uuid $id = null;
 
     #[ORM\Column(length: 255)]
     private ?string $name = null;
@@ -27,7 +26,14 @@ class Task
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $updatedAt = null;
 
-    public function getId(): ?uuid
+    public function __construct()
+    {
+        $this->id = Uuid::v4();
+        $this->createdAt = new \DateTime();
+        $this->updatedAt = new \DateTime();
+    }
+
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
