@@ -14,7 +14,6 @@ class TaskType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('id')
             ->add('name', TextType::class, [
                 'constraints' => [
                     new Length([
@@ -25,19 +24,14 @@ class TaskType extends AbstractType
                     ]),
                 ],
             ])
-            ->add('description')
-            ->add('createdAt', null, [
-                'widget' => 'single_text',
-            ])
-            ->add('updatedAt', null, [
-                'widget' => 'single_text',
-            ]);
+            ->add('description');
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Task::class,
+            'csrf_protection' => false,
         ]);
     }
 }

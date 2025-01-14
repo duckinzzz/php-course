@@ -17,65 +17,64 @@ final class TaskController extends AbstractController
     #[Route(name: 'app_task_index', methods: ['GET'])]
     public function index(TaskRepository $taskRepository): Response
     {
-        return $this->render('task/index.html.twig', [
-            'tasks' => $taskRepository->findAll(),
-        ]);
+        $tasks = $taskRepository->findAll();
+        return $this->json($tasks);
     }
 
-    #[Route('/new', name: 'app_task_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_task_new', methods: ['POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $data = json_decode($request->getContent(), true);
         $task = new Task();
+
         $form = $this->createForm(TaskType::class, $task);
-        $form->handleRequest($request);
+        $form->submit($data);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($task);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
+            return $this->json($task, Response::HTTP_CREATED);
         }
 
-        return $this->render('task/new.html.twig', [
-            'task' => $task,
-            'form' => $form,
-        ]);
+        return $this->json([
+            'errors' => (string)$form->getErrors(true, false),
+        ], Response::HTTP_BAD_REQUEST);
     }
 
     #[Route('/{id}', name: 'app_task_show', methods: ['GET'])]
     public function show(Task $task): Response
     {
-        return $this->render('task/show.html.twig', [
-            'task' => $task,
-        ]);
+        return $this->json($task);
     }
 
-    #[Route('/{id}/edit', name: 'app_task_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_task_edit', methods: ['PUT', 'PATCH'])]
     public function edit(Request $request, Task $task, EntityManagerInterface $entityManager): Response
     {
+        $data = json_decode($request->getContent(), true);
+
         $form = $this->createForm(TaskType::class, $task);
-        $form->handleRequest($request);
+        $form->submit($data, false);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $task->setUpdatedAt(new \DateTime());
             $entityManager->flush();
-
-            return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
+            return $this->json($task);
         }
 
-        return $this->render('task/edit.html.twig', [
-            'task' => $task,
-            'form' => $form,
-        ]);
+        return $this->json([
+            'errors' => (string)$form->getErrors(true, false),
+        ], Response::HTTP_BAD_REQUEST);
     }
 
-    #[Route('/{id}', name: 'app_task_delete', methods: ['POST'])]
-    public function delete(Request $request, Task $task, EntityManagerInterface $entityManager): Response
+
+    #[Route('/{id}', name: 'app_task_delete', methods: ['DELETE'])]
+    public function delete(Task $task, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$task->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($task);
-            $entityManager->flush();
-        }
+        $entityManager->remove($task);
+        $entityManager->flush();
 
-        return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
+        return $this->json(null, Response::HTTP_NO_CONTENT);
     }
+
 }

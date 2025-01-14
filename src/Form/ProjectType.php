@@ -14,7 +14,6 @@ class ProjectType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('id')
             ->add('name', TextType::class, [
                 'constraints' => [
                     new Length([
@@ -24,11 +23,6 @@ class ProjectType extends AbstractType
                         'maxMessage' => 'Name should be at most 255 characters long',
                     ]),
                 ],
-            ])->add('createdAt', null, [
-                'widget' => 'single_text',
-            ])
-            ->add('updatedAt', null, [
-                'widget' => 'single_text',
             ]);
     }
 
@@ -36,6 +30,7 @@ class ProjectType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Project::class,
+            'csrf_protection' => false,
         ]);
     }
 }

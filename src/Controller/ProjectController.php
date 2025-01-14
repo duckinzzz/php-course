@@ -17,65 +17,61 @@ final class ProjectController extends AbstractController
     #[Route(name: 'app_project_index', methods: ['GET'])]
     public function index(ProjectRepository $projectRepository): Response
     {
-        return $this->render('project/index.html.twig', [
-            'projects' => $projectRepository->findAll(),
-        ]);
+        $projects = $projectRepository->findAll();
+        return $this->json($projects);
     }
 
-    #[Route('/new', name: 'app_project_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_project_new', methods: ['POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $data = json_decode($request->getContent(), true);
         $project = new Project();
+
         $form = $this->createForm(ProjectType::class, $project);
-        $form->handleRequest($request);
+        $form->submit($data);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($project);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_project_index', [], Response::HTTP_SEE_OTHER);
+            return $this->json($project, Response::HTTP_CREATED);
         }
 
-        return $this->render('project/new.html.twig', [
-            'project' => $project,
-            'form' => $form,
-        ]);
+        return $this->json([
+            'errors' => (string)$form->getErrors(true, false),
+        ], Response::HTTP_BAD_REQUEST);
     }
 
     #[Route('/{id}', name: 'app_project_show', methods: ['GET'])]
     public function show(Project $project): Response
     {
-        return $this->render('project/show.html.twig', [
-            'project' => $project,
-        ]);
+        return $this->json($project);
     }
 
-    #[Route('/{id}/edit', name: 'app_project_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_project_edit', methods: ['PUT', 'PATCH'])]
     public function edit(Request $request, Project $project, EntityManagerInterface $entityManager): Response
     {
+        $data = json_decode($request->getContent(), true);
+
         $form = $this->createForm(ProjectType::class, $project);
-        $form->handleRequest($request);
+        $form->submit($data, false);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-
-            return $this->redirectToRoute('app_project_index', [], Response::HTTP_SEE_OTHER);
+            return $this->json($project);
         }
 
-        return $this->render('project/edit.html.twig', [
-            'project' => $project,
-            'form' => $form,
-        ]);
+        return $this->json([
+            'errors' => (string)$form->getErrors(true, false),
+        ], Response::HTTP_BAD_REQUEST);
     }
 
-    #[Route('/{id}', name: 'app_project_delete', methods: ['POST'])]
-    public function delete(Request $request, Project $project, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}', name: 'app_project_delete', methods: ['DELETE'])]
+    public function delete(Project $project, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$project->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($project);
-            $entityManager->flush();
-        }
+        $entityManager->remove($project);
+        $entityManager->flush();
 
-        return $this->redirectToRoute('app_project_index', [], Response::HTTP_SEE_OTHER);
+        return $this->json(null, Response::HTTP_NO_CONTENT);
     }
 }

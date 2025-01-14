@@ -14,7 +14,6 @@ class ProjectsGroupType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('id')
             ->add('name', TextType::class, [
                 'constraints' => [
                     new Length([
@@ -24,20 +23,15 @@ class ProjectsGroupType extends AbstractType
                         'maxMessage' => 'Name should be at most 255 characters long',
                     ]),
                 ],
-            ])
-            ->add('createdAt', null, [
-                'widget' => 'single_text',
-            ])
-            ->add('updatedAt', null, [
-                'widget' => 'single_text',
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => ProjectsGroup::class,
+            'csrf_protection' => false,
         ]);
     }
+
 }
