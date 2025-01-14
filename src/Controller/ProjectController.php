@@ -18,7 +18,7 @@ final class ProjectController extends AbstractController
     public function index(ProjectRepository $projectRepository): Response
     {
         $projects = $projectRepository->findAll();
-        return $this->json($projects);
+        return $this->json(['data' => $projects]);
     }
 
     #[Route('/new', name: 'app_project_new', methods: ['POST'])]
@@ -34,18 +34,20 @@ final class ProjectController extends AbstractController
             $entityManager->persist($project);
             $entityManager->flush();
 
-            return $this->json($project, Response::HTTP_CREATED);
+            return $this->json(['data' => $project], Response::HTTP_CREATED);
         }
 
         return $this->json([
-            'errors' => (string)$form->getErrors(true, false),
+            'data' => [
+                'name' => (string)$form->getErrors(true, false),
+            ]
         ], Response::HTTP_BAD_REQUEST);
     }
 
     #[Route('/{id}', name: 'app_project_show', methods: ['GET'])]
     public function show(Project $project): Response
     {
-        return $this->json($project);
+        return $this->json(['data' => $project]);
     }
 
     #[Route('/{id}/edit', name: 'app_project_edit', methods: ['PUT', 'PATCH'])]
@@ -58,11 +60,13 @@ final class ProjectController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            return $this->json($project);
+            return $this->json(['data' => $project]);
         }
 
         return $this->json([
-            'errors' => (string)$form->getErrors(true, false),
+            'data' => [
+                'name' => (string)$form->getErrors(true, false),
+            ]
         ], Response::HTTP_BAD_REQUEST);
     }
 
@@ -72,6 +76,6 @@ final class ProjectController extends AbstractController
         $entityManager->remove($project);
         $entityManager->flush();
 
-        return $this->json(null, Response::HTTP_NO_CONTENT);
+        return $this->json(['data' => null], Response::HTTP_NO_CONTENT);
     }
 }

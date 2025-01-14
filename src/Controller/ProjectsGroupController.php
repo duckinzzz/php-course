@@ -18,9 +18,8 @@ final class ProjectsGroupController extends AbstractController
     public function index(ProjectsGroupRepository $projectsGroupRepository): Response
     {
         $projectsGroups = $projectsGroupRepository->findAll();
-        return $this->json($projectsGroups);
+        return $this->json(['data' => $projectsGroups]);
     }
-
 
     #[Route('/new', name: 'app_projects_group_new', methods: ['POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
@@ -35,11 +34,13 @@ final class ProjectsGroupController extends AbstractController
             $entityManager->persist($projectsGroup);
             $entityManager->flush();
 
-            return $this->json($projectsGroup, Response::HTTP_CREATED);
+            return $this->json(['data' => $projectsGroup], Response::HTTP_CREATED);
         }
 
         return $this->json([
-            'errors' => (string) $form->getErrors(true, false),
+            'data' => [
+                'name' => (string)$form->getErrors(true, false),
+            ]
         ], Response::HTTP_BAD_REQUEST);
     }
 
@@ -47,10 +48,12 @@ final class ProjectsGroupController extends AbstractController
     public function show(ProjectsGroup $projectsGroup): Response
     {
         return $this->json([
-            'id' => $projectsGroup->getId(),
-            'name' => $projectsGroup->getName(),
-            'createdAt' => $projectsGroup->getCreatedAt()?->format('Y-m-d H:i:s'),
-            'updatedAt' => $projectsGroup->getUpdatedAt()?->format('Y-m-d H:i:s'),
+            'data' => [
+                'id' => $projectsGroup->getId(),
+                'name' => $projectsGroup->getName(),
+                'createdAt' => $projectsGroup->getCreatedAt()?->format('Y-m-d H:i:s'),
+                'updatedAt' => $projectsGroup->getUpdatedAt()?->format('Y-m-d H:i:s'),
+            ]
         ]);
     }
 
@@ -66,14 +69,15 @@ final class ProjectsGroupController extends AbstractController
             $projectsGroup->setUpdatedAt(new \DateTime());
             $entityManager->flush();
 
-            return $this->json($projectsGroup);
+            return $this->json(['data' => $projectsGroup]);
         }
 
         return $this->json([
-            'errors' => (string) $form->getErrors(true, false),
+            'data' => [
+                'name' => (string)$form->getErrors(true, false),
+            ]
         ], Response::HTTP_BAD_REQUEST);
     }
-
 
     #[Route('/{id}', name: 'app_projects_group_delete', methods: ['DELETE'])]
     public function delete(ProjectsGroup $projectsGroup, EntityManagerInterface $entityManager): Response
@@ -81,6 +85,6 @@ final class ProjectsGroupController extends AbstractController
         $entityManager->remove($projectsGroup);
         $entityManager->flush();
 
-        return $this->json(null, Response::HTTP_NO_CONTENT);
+        return $this->json(['data' => null], Response::HTTP_NO_CONTENT);
     }
 }
