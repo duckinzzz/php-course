@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Project;
 use App\Form\ProjectType;
 use App\Repository\ProjectRepository;
+use App\Repository\ProjectsGroupRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,14 +19,28 @@ final class ProjectController extends AbstractController
     public function index(ProjectRepository $projectRepository): Response
     {
         $projects = $projectRepository->findAll();
-        return $this->json(['data' => $projects]);
+        return $this->json($projects, 200, [], ['groups' => ['project_read']]);
     }
 
     #[Route('/new', name: 'app_project_new', methods: ['POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, ProjectsGroupRepository $projectsGroupRepository): Response
     {
         $data = json_decode($request->getContent(), true);
         $project = new Project();
+
+        $groupId = $data['projectGroup'] ?? null;
+
+        if ($groupId) {
+            $projectGroup = $projectsGroupRepository->find($groupId);
+
+            if ($projectGroup) {
+                $project->setProjectGroup($projectGroup);
+            } else {
+                return $this->json(['error' => 'Project group not found'], Response::HTTP_NOT_FOUND);
+            }
+        } else {
+            return $this->json(['error' => 'Project group ID is required'], Response::HTTP_BAD_REQUEST);
+        }
 
         $form = $this->createForm(ProjectType::class, $project);
         $form->submit($data);
@@ -34,12 +49,12 @@ final class ProjectController extends AbstractController
             $entityManager->persist($project);
             $entityManager->flush();
 
-            return $this->json(['data' => $project], Response::HTTP_CREATED);
+            return $this->json($project, Response::HTTP_CREATED, [], ['groups' => ['project_read']]);
         }
 
         return $this->json([
             'data' => [
-                'name' => (string)$form->getErrors(true, false),
+                'errors' => (string)$form->getErrors(true, false),
             ]
         ], Response::HTTP_BAD_REQUEST);
     }
@@ -47,7 +62,7 @@ final class ProjectController extends AbstractController
     #[Route('/{id}', name: 'app_project_show', methods: ['GET'])]
     public function show(Project $project): Response
     {
-        return $this->json(['data' => $project]);
+        return $this->json($project, 200, [], ['groups' => ['project_read']]);
     }
 
     #[Route('/{id}/edit', name: 'app_project_edit', methods: ['PUT', 'PATCH'])]
@@ -60,12 +75,12 @@ final class ProjectController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            return $this->json(['data' => $project]);
+            return $this->json($project, 200, [], ['groups' => ['project_read']]);
         }
 
         return $this->json([
             'data' => [
-                'name' => (string)$form->getErrors(true, false),
+                'errors' => (string)$form->getErrors(true, false),
             ]
         ], Response::HTTP_BAD_REQUEST);
     }
