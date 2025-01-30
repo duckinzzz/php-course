@@ -17,67 +17,65 @@ final class ProjectsGroupController extends AbstractController
     #[Route(name: 'app_projects_group_index', methods: ['GET'])]
     public function index(ProjectsGroupRepository $projectsGroupRepository): Response
     {
-        $projectsGroups = $projectsGroupRepository->findAll();
-        return $this->json(['data' => $projectsGroups]);
+        return $this->render('projects_group/index.html.twig', [
+            'projects_groups' => $projectsGroupRepository->findAll(),
+        ]);
     }
 
-    #[Route('/new', name: 'app_projects_group_new', methods: ['POST'])]
+    #[Route('/new', name: 'app_projects_group_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $data = json_decode($request->getContent(), true);
         $projectsGroup = new ProjectsGroup();
-
         $form = $this->createForm(ProjectsGroupType::class, $projectsGroup);
-        $form->submit($data);
+        $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($projectsGroup);
             $entityManager->flush();
 
-            return $this->json(['data' => $projectsGroup], Response::HTTP_CREATED);
+            return $this->redirectToRoute('app_projects_group_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->json([
-            'data' => [
-                'name' => (string)$form->getErrors(true, false),
-            ]
-        ], Response::HTTP_BAD_REQUEST);
+        return $this->render('projects_group/new.html.twig', [
+            'projects_group' => $projectsGroup,
+            'form' => $form,
+        ]);
     }
 
     #[Route('/{id}', name: 'app_projects_group_show', methods: ['GET'])]
     public function show(ProjectsGroup $projectsGroup): Response
     {
-        return $this->json($projectsGroup, 200, [], ['groups' => ['projects_group_read']]);
+        return $this->render('projects_group/show.html.twig', [
+            'projects_group' => $projectsGroup,
+        ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_projects_group_edit', methods: ['PUT', 'PATCH'])]
+    #[Route('/{id}/edit', name: 'app_projects_group_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, ProjectsGroup $projectsGroup, EntityManagerInterface $entityManager): Response
     {
-        $data = json_decode($request->getContent(), true);
-
         $form = $this->createForm(ProjectsGroupType::class, $projectsGroup);
-        $form->submit($data, false);
+        $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $projectsGroup->setUpdatedAt(new \DateTime());
             $entityManager->flush();
 
-            return $this->json(['data' => $projectsGroup]);
+            return $this->redirectToRoute('app_projects_group_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->json([
-            'data' => [
-                'name' => (string)$form->getErrors(true, false),
-            ]
-        ], Response::HTTP_BAD_REQUEST);
+        return $this->render('projects_group/edit.html.twig', [
+            'projects_group' => $projectsGroup,
+            'form' => $form,
+        ]);
     }
 
-    #[Route('/{id}', name: 'app_projects_group_delete', methods: ['DELETE'])]
-    public function delete(ProjectsGroup $projectsGroup, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}', name: 'app_projects_group_delete', methods: ['POST'])]
+    public function delete(Request $request, ProjectsGroup $projectsGroup, EntityManagerInterface $entityManager): Response
     {
-        $entityManager->remove($projectsGroup);
-        $entityManager->flush();
+        if ($this->isCsrfTokenValid('delete'.$projectsGroup->getId(), $request->getPayload()->getString('_token'))) {
+            $entityManager->remove($projectsGroup);
+            $entityManager->flush();
+        }
 
-        return $this->json(['data' => null], Response::HTTP_NO_CONTENT);
+        return $this->redirectToRoute('app_projects_group_index', [], Response::HTTP_SEE_OTHER);
     }
 }

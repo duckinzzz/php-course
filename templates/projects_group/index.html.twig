@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}ProjectsGroup index{% endblock %}
+
+{% block body %}
+    <h1>ProjectsGroup index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>CreatedAt</th>
+                <th>UpdatedAt</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for projects_group in projects_groups %}
+            <tr>
+                <td>{{ projects_group.id }}</td>
+                <td>{{ projects_group.name }}</td>
+                <td>{{ projects_group.createdAt ? projects_group.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ projects_group.updatedAt ? projects_group.updatedAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('app_projects_group_show', {'id': projects_group.id}) }}">show</a>
+                    <a href="{{ path('app_projects_group_edit', {'id': projects_group.id}) }}">edit</a>
+                    {{ include('projects_group/_delete_form.html.twig') }}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_projects_group_new') }}">Create new</a>
+{% endblock %}
