@@ -32,6 +32,7 @@ class Project
     private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'projects')]
+    #[ORM\JoinColumn(name: 'project_group_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     #[Groups(['project_read'])]
     private ?ProjectsGroup $projectGroup = null;
 

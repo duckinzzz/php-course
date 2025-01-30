@@ -33,6 +33,7 @@ class Task
     private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'tasks')]
+    #[ORM\JoinColumn(name: 'project_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     #[Groups(['task_read'])]
     private ?Project $project = null;
 
