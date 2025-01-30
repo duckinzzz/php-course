@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Task;
 use App\Form\TaskType;
+use App\Repository\ProjectRepository;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,10 +23,24 @@ final class TaskController extends AbstractController
     }
 
     #[Route('/new', name: 'app_task_new', methods: ['POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, ProjectRepository $projectRepository): Response
     {
         $data = json_decode($request->getContent(), true);
         $task = new Task();
+
+        $projectId = $data['project'] ?? null;
+
+        if ($projectId) {
+            $project = $projectRepository->find($projectId);
+
+            if ($project) {
+                $task->setProject($project);
+            } else {
+                return $this->json(['error' => 'Project not found'], Response::HTTP_NOT_FOUND);
+            }
+        } else {
+            return $this->json(['error' => 'Project ID is required'], Response::HTTP_BAD_REQUEST);
+        }
 
         $form = $this->createForm(TaskType::class, $task);
         $form->submit($data);
@@ -34,13 +49,12 @@ final class TaskController extends AbstractController
             $entityManager->persist($task);
             $entityManager->flush();
 
-            return $this->json(['data' => $task], Response::HTTP_CREATED);
+            return $this->json($task, Response::HTTP_CREATED, [], ['groups' => ['task_read']]);
         }
 
         return $this->json([
             'data' => [
-                'name' => (string) $form->getErrors(true, false),
-                'description' => (string) $form->getErrors(true, false),
+                'errors' => (string)$form->getErrors(true, false),
             ]
         ], Response::HTTP_BAD_REQUEST);
     }

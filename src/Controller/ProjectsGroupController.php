@@ -47,14 +47,7 @@ final class ProjectsGroupController extends AbstractController
     #[Route('/{id}', name: 'app_projects_group_show', methods: ['GET'])]
     public function show(ProjectsGroup $projectsGroup): Response
     {
-        return $this->json([
-            'data' => [
-                'id' => $projectsGroup->getId(),
-                'name' => $projectsGroup->getName(),
-                'createdAt' => $projectsGroup->getCreatedAt()?->format('Y-m-d H:i:s'),
-                'updatedAt' => $projectsGroup->getUpdatedAt()?->format('Y-m-d H:i:s'),
-            ]
-        ]);
+        return $this->json($projectsGroup, 200, [], ['groups' => ['projects_group_read']]);
     }
 
     #[Route('/{id}/edit', name: 'app_projects_group_edit', methods: ['PUT', 'PATCH'])]

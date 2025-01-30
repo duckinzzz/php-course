@@ -24,7 +24,10 @@ class TaskType extends AbstractType
                     ]),
                 ],
             ])
-            ->add('description');
+            ->add('description')
+            ->add('project', TextType::class, [
+                'mapped' => false,
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

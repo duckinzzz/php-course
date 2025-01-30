@@ -23,6 +23,9 @@ class ProjectType extends AbstractType
                         'maxMessage' => 'Name should be at most 255 characters long',
                     ]),
                 ],
+            ])
+            ->add('projectGroup', TextType::class, [
+                'mapped' => false,
             ]);
     }
 
