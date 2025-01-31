@@ -3,12 +3,14 @@
 namespace App\Form;
 
 use App\Entity\Project;
+use App\Entity\ProjectsGroup;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 class ProjectType extends AbstractType
 {
@@ -25,8 +27,14 @@ class ProjectType extends AbstractType
                     ]),
                 ],
             ])
-            ->add('projectGroup', HiddenType::class, [
-                'mapped' => false,
+            ->add('projectGroup', EntityType::class, [
+                'class' => ProjectsGroup::class,
+                'choice_label' => 'name',
+                'constraints' => [
+                    new NotNull([
+                        'message' => 'project group should not be null',
+                    ]),
+                ],
             ]);
     }
 
