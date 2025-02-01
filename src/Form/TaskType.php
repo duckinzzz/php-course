@@ -3,11 +3,14 @@
 namespace App\Form;
 
 use App\Entity\Task;
+use App\Entity\Project;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 class TaskType extends AbstractType
 {
@@ -25,8 +28,14 @@ class TaskType extends AbstractType
                 ],
             ])
             ->add('description')
-            ->add('project', TextType::class, [
-                'mapped' => false,
+            ->add('project', EntityType::class, [
+                'class' => Project::class,
+                'choice_label' => 'name',
+                'constraints' => [
+                    new NotNull([
+                        'message' => 'project should not be null',
+                    ]),
+                ],
             ]);
     }
 
